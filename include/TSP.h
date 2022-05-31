@@ -20,19 +20,14 @@ using V = std::vector<T>;
 class TSP 
 {
   public:
-    M<double> Distance;
-    V<double> Demand;
-    //V<>
-    //M<double> W_2;
-
-    M<bool> spin;
-
     V<double> Coeff;
     Params* params;
-    V<int> nodelist;
-    V<int>& r_in;
 
-    M<int> r_out;
+    V<int> visited_clients;
+
+    M<int> s_in;
+
+    M<int> s_out;
 
     double beta1 = 3.0;
     double beta0 = 0.01;
@@ -40,27 +35,25 @@ class TSP
     int sweeps;
     double scale;
 
-    int graph_size_i;
-    int graph_size_j;
-
-    TSP(Params*, V<int>&, V<double>&);
-    void work(int);
+    TSP(Params*, M<int>&, V<double>&);
+    void work();
 
   private:
     std::random_device rd;
     std::mt19937 gen{rd()};
     std::uniform_real_distribution<double> dis{std::uniform_real_distribution<double> (0., 1.)};
 
-    void fill(int);
-    void init(int);
-    void SA();
-    double qubo_ene();
-    double diff(int, int);
-    void update_out();
-    bool accept(double);
-    void test();
+    V<int> Fill(int, V<int>&);
+    V<double> Dem(V<int>&);
+    M<double> Dist(V<int>&);
+    // void SA();
+    double qubo_ene(M<bool>&);
+    double diff(int, int, M<bool>&);
+    // void update_out();
+    // bool accept(double);
+    // void test();
 
-    bool validate();
+    // bool validate();
 
 };
 

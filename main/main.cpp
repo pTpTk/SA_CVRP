@@ -4,7 +4,7 @@
 #include "Split.h"
 #include "TSP.h"
 #include "Route.h"
-#include "MIP.h"
+// #include "MIP.h"
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -38,34 +38,36 @@ int main(int argc, char *argv[])
 		{
             std::vector<double> A = commandline.A;
 			std::vector<std::vector<int>> r_out;
-            // auto& r = population.getBestFound()->chromR[0];
-            // TSP tsp(&params, r, A);
-            // tsp.work(commandline.nbIter);
-			for(auto& r : population.getBestFound()->chromR){
-                TSP tsp(&params, r, A);
-                tsp.work(commandline.nbIter);
-				r_out.insert(r_out.end(), tsp.r_out.begin(), tsp.r_out.end());
-            }
-			cout << r_out.size();
-			for(int i = 0 ; i < r_out.size(); i++) {
-				auto& ro = r_out.at(i);
-				printf("Route[%d]: ", i);
-				double demand(0);
-				for(auto n : ro){
-					demand += params.cli[n].demand;
-					std::cout << n << ' ';
-				}
-				// if(demand > params.vehicleCapacity) {
-				// 	printf("i = %d\n", i);
-				// 	r_out.erase(r_out.begin()+i); i--;
-				// 						printf("i = %d\n", i);
+            for(auto c : population.getBestFound()->chromR[0])
+                std::cout << c << " ";
+            std::cout << std::endl;
+			TSP tsp(&params, population.getBestFound()->chromR, A);
+			tsp.work();
+			// for(auto& r : population.getBestFound()->chromR){
+            //     TSP tsp(&params, r, A);
+            //     tsp.work(commandline.nbIter);
+			// 	r_out.insert(r_out.end(), tsp.r_out.begin(), tsp.r_out.end());
+            // }
+			// cout << r_out.size();
+			// for(int i = 0 ; i < r_out.size(); i++) {
+			// 	auto& ro = r_out.at(i);
+			// 	printf("Route[%d]: ", i);
+			// 	double demand(0);
+			// 	for(auto n : ro){
+			// 		demand += params.cli[n].demand;
+			// 		std::cout << n << ' ';
+			// 	}
+			// 	// if(demand > params.vehicleCapacity) {
+			// 	// 	printf("i = %d\n", i);
+			// 	// 	r_out.erase(r_out.begin()+i); i--;
+			// 	// 						printf("i = %d\n", i);
 
-				// }
-				std::cout << "valid: " << (demand <= params.vehicleCapacity) << std::endl;
-			}
-			R r(&params, r_out);
-			MIP mip(r.routes, &params);
-			mip.work();
+			// 	// }
+			// 	std::cout << "valid: " << (demand <= params.vehicleCapacity) << std::endl;
+			// }
+			// R r(&params, r_out);
+			// MIP mip(r.routes, &params);
+			// mip.work();
 		}
 		else
 			std::cout << "no initial solutions found" << std::endl;
