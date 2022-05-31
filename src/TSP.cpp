@@ -74,7 +74,7 @@ void TSP::fill(int i){
 void TSP::init(int i)
 {
     nodelist = r_in;
-    fill(i);
+    fill(r_in[i]);
     for(auto& n : nodelist){
         std::cout << n << ' ';
     }
