@@ -1,0 +1,15 @@
+#!/bin/bash
+
+for dem in 1 10 100
+do
+for dis in 1 10 100
+do
+for i in {1..20}
+do
+    c="./cvrp X-n5.vrp 50000 50000 50000 $dem $dis"
+    echo $c >> out
+    sleep 1s
+    eval $c >> out
+done
+done
+done

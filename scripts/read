@@ -1,0 +1,52 @@
+#!/bin/bash
+simm="sim003"
+simDir="/scratch/zxu44/results/HGS-CVRP-SP/$simm"
+graphs=($(ls $simDir | grep X))
+
+for g in ${graphs[@]}
+do
+    echo $g
+    a=0
+    b=0
+    c=0
+    d=0
+    Amin=10000000
+    Bmin=10000000
+    
+    for i in {01..20}
+    do
+        if [ $(grep Objective $simDir/$g/$i/run | wc -l) -ge 1 ]
+        then
+            tmp=$(grep Objective $simDir/$g/$i/run | awk 'NR==1{print $NF}')
+            a=$(( a + tmp ))
+            c=$(( c + 1 ))
+            if [ $tmp -le $Amin ]
+            then
+                Amin=$tmp
+            fi
+        fi
+        if [ $(grep Objective $simDir/$g/$i/run | wc -l) -ge 2 ]
+        then
+            tmp=$(grep Objective $simDir/$g/$i/run | awk 'NR==2{print $NF}')
+            b=$(( b + tmp ))
+            d=$(( d + 1 ))
+            if [ $tmp -le $Bmin ]
+            then
+                Bmin=$tmp
+            fi
+        fi
+    done
+    if [ $Amin -lt $Bmin ]
+    then
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!"
+    fi
+    printf "SP avg: "
+    echo "scale=2; $a/$c" | bc
+    printf "SP min: "
+    echo $Amin
+    printf "UHGS avg: "
+    echo "scale=2; $b/$d" | bc
+    printf "UHGS min: "
+    echo $Bmin
+    echo
+done

@@ -1,0 +1,48 @@
+#!/bin/bash
+simm="sim011"
+proj="SA_CVRP"
+
+
+simDir="/scratch/zxu44/results/${proj}/${simm}"
+binDir="${simDir}/bin"
+mkdir -p $binDir
+cp "/home/zxu44/${proj}/cvrp" "$binDir"
+cp "/home/zxu44/${proj}/X-n101.vrp" "$binDir"
+
+> ${simm}_CMD
+for i in 100000 1000000
+do
+for j in 1
+do
+for k in 1
+do
+for l in 1
+do
+for m in 0 
+do
+    #scriptDir="${simDir}/${i}_${j}_${k}_${l}_${m}"
+    scriptDir="${simDir}/${i}_${i}_${i}_${i}_${j}"
+    mkdir -p $scriptDir
+    script="#!/bin/bash\n"
+    script+="#SBATCH --partition=THE_QUEUE\n" 
+    script+="#SBATCH --job-name=${proj}_${g}_${i}\n"
+    script+="#SBATCH --error=err\n"
+    script+="#SBATCH --output=run\n"
+    script+="#SBATCH --mem-per-cpu=2GB\n"
+    script+="#SBATCH --time=1-00:00:00\n"
+    script+="\n"
+    script+="module unload gcc;\n"
+    script+="module load gcc;\n"
+    script+="\n"
+    script+="st=\$SECONDS\n"
+    script+="${binDir}/cvrp ${binDir}/X-n101.vrp $i $i $i $i $j -it 8000\n"
+    printf "$script" > ${scriptDir}/launch_this
+    chmod 770 ${scriptDir}/launch_this
+    echo ${scriptDir} >> ${simm}_CMD
+    printf '.'
+done
+done
+done
+done
+done
+echo

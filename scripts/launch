@@ -1,0 +1,102 @@
+#!/bin/bash
+#SBATCH --partition=standard
+#SBATCH --job-name=ZXU_QUEUE
+#SBATCH --error=/scratch/zxu44/results/SA_CVRP/sim011/err
+#SBATCH --output=/scratch/zxu44/results/SA_CVRP/sim011/out
+#SBATCH --mem-per-cpu=1GB
+#SBATCH --time=5-00:00:00
+#SBATCH --mail-type=BEGIN,END
+#SBATCH --mail-user=zxu44@ur.rochester.edu
+#SBATCH -n 1
+
+QU_PATH=/home/zxu44/SA_CVRP/scripts/
+QU_FILE=${QU_PATH}/sim011_CMD
+NUM_JOBS=$(wc -l ${QU_FILE} | awk '{print $1}')
+QU=("standard" "phi" "preempt" "ising")
+INDEX_ALL=1
+DONE_FLAG=0
+SECONDS=0
+
+while ((INDEX_ALL <= NUM_JOBS)); do
+
+    idx=0;
+
+    while ((idx<${#QU[@]})); do
+
+        # Get queue name
+        q=${QU[$idx]}; idx=$((idx+1));
+
+        # Get queue count
+        case ${q} in
+            *"reserved"*) qc=70; p="reserved";;
+            *"phi"*) qc=35;;
+            *"ising"*) qc=20;;
+            *) qc=50;;
+        esac
+
+        # Assign core count
+        v=$(squeue -u $USER -p "$q" | awk '{if(NR>1)print}' | wc -l | awk -v qc=${qc} '{print qc-$1}');
+
+        # Launch jobs
+        if [ "$v" -gt "0" ]; then
+
+            echo "Empty: $v, Queue: $q, Index: $INDEX_ALL of $NUM_JOBS";
+            curr=0;
+
+            while ((curr < $v)); do
+
+                # Get the next directory path
+                dir=$(sed "${INDEX_ALL}q;d" ${QU_FILE})
+
+                echo "Idx: ${INDEX_ALL} of ${NUM_JOBS}, Queue: ${q}, Path: ${dir}"
+
+                # Launch this job
+                cd $dir
+                sed -i 's/THE_QUEUE/'"${q}"'/g' launch_this
+                unset TMPDIR
+                CMD="sbatch launch_this"
+                if ! eval ${CMD}; then
+                    echo "Job ${INDEX_ALL} launch failed!"
+                    while ! eval ${CMD}; do printf "."; done
+                fi
+
+                curr=$((curr+1))
+                if [ $INDEX_ALL -ge $NUM_JOBS ]; then
+                    DONE_FLAG=1
+                    break;
+                fi
+                INDEX_ALL=$((INDEX_ALL+1))
+            done
+        fi
+        if [ $DONE_FLAG -eq 1 ]; then break; fi
+    done
+    if [ $DONE_FLAG -eq 1 ]; then break; fi
+    sleep 1
+done
+
+while :
+do
+    job=0
+    for q in ${QU[@]}
+    do
+        if [ $(squeue -u $USER -p $q | awk '{if(NR>1)print}' | wc -l ) -le 1 ]
+        then
+            job=$((job+1))
+        fi
+    done
+    if [ $job -ge ${#QU[@]} ];then
+        break
+    fi
+    sleep 600
+done
+
+_duration=$SECONDS
+_hours=$(($_duration / 3600))
+_diffs=$(($_duration % 3600))
+_minut=$(($_diffs / 60))
+_secon=$(($_diffs % 60))
+
+echo "All Done!"
+
+echo "Time: ${_hours}h ${_minut}m ${_secon}s"
+
