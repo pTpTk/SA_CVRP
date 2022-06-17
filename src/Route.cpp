@@ -15,10 +15,16 @@ double R::eval_r(std::vector<int>& r)
     auto& cost(params->timeCost);
 
     assert(r.size() > 0);
-
+#ifdef TUNE
+    for(auto& i : r) {
+        std::cout << i << ' ';
+    }
+    std::cout << std::endl;
+#endif
     for(int i = 1; i < (int)r.size(); ++i){
         total_cost += cost[r[i-1]][r[i]];
     }
+
     total_cost += cost[0][r[0]] + cost[r.back()][0];
 
     return total_cost;

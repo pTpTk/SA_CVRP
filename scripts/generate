@@ -1,5 +1,5 @@
 #!/bin/bash
-simm="sim011"
+simm="sim001"
 proj="SA_CVRP"
 
 

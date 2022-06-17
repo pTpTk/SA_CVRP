@@ -43,14 +43,9 @@ void TSP::work(int iter=8000)
 {
     sweeps = iter;
     scale = sweeps > 1 ? (beta1 - beta0) / (sweeps - 1) : 0.00;
-    //init(1);
-    //SA();
-    //test();
     for(int i = 0; i < r_in.size(); i++){
-        for(int j = 0; j < 5; j++){
-            init(i);
-            SA();
-        }
+        init(i);
+        SA();
     }
 }
 
@@ -64,7 +59,9 @@ void TSP::fill(int i){
 
     nodelist.insert(nodelist.end(), n_i.begin(), n_i.end());
     nodelist.emplace_back(0);
+#ifdef DEBUG
     printf("nodelist.size() = %d\n", nodelist.size());
+#endif
 }
 
 /* Last item of the matrix is the depot node. Since the route has to start from 
@@ -75,10 +72,12 @@ void TSP::init(int i)
 {
     nodelist = r_in;
     fill(r_in[i]);
+#ifdef DEBUG
     for(auto& n : nodelist){
         std::cout << n << ' ';
     }
     std::cout << std::endl;
+#endif
     
     // Dist[i][j] = dist(i -> j)
     graph_size_i = nodelist.size();
@@ -131,16 +130,17 @@ void TSP::SA()
                 if(accept(d)){
                     spin[i][j] = !spin[i][j];
                     ene += d;
-                    //counter = 0;
-                    //assert(ene == qubo_ene());
-                    //printf("spin[%d][%d] flipped\n", i, j);
-                    //
-                    //for(int i = 0; i < graph_size_i; i++){
-                    //    for(int j = 0; j < graph_size_j; j++){
-                    //        std::cout << spin[i][j] << ' ';
-                    //    }
-                    //    std::cout << std::endl;
-                    //}
+#ifdef DEBUG
+    assert(ene == qubo_ene());
+    printf("spin[%d][%d] flipped\n", i, j);
+    
+    for(int i = 0; i < graph_size_i; i++){
+        for(int j = 0; j < graph_size_j; j++){
+            std::cout << spin[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+#endif
                 }
             }
         }
@@ -168,7 +168,6 @@ double TSP::qubo_ene(){
         }
     }
     ene += Coeff[0] * ene_col;
-    //printf("ene_col = %.1f\n", Coeff[0] * ene_col);
 
     for(int i = 0; i < graph_size_i-1; i++){
         for(int j = 0; j < graph_size_j; j++){
@@ -179,7 +178,6 @@ double TSP::qubo_ene(){
         }
     }
     ene += Coeff[1] * ene_row;
-    //printf("ene_row = %.1f\n", Coeff[1] * ene_row);
 
     for(int i = 0; i < graph_size_i-1; i++){
         for(int j = 0; j < graph_size_j-1; j++){
@@ -189,7 +187,6 @@ double TSP::qubo_ene(){
         }
     }
     ene += Coeff[2] * ene_depot;
-    //printf("ene_depot = %.1f\n", Coeff[2] * ene_depot);
 
     for(int i = 0; i < graph_size_i; i++){
         for(int j = 0; j < graph_size_j; j++){
@@ -204,7 +201,6 @@ double TSP::qubo_ene(){
         }
     }
     ene += Coeff[3] * ene_dem;
-    //printf("ene_dem = %.1f\n", Coeff[3] * ene_dem);
     
     for(int i = 0; i < graph_size_i; i++){
         ene_dis += spin[i][0]     * Distance[i].back();
@@ -217,9 +213,15 @@ double TSP::qubo_ene(){
         }
     }
     ene += Coeff[4] * ene_dis;
-    //printf("ene_dis = %.1f\n", Coeff[4] * ene_dis);
 
+#ifdef DEBUG
+    printf("ene_col = %.1f\n", Coeff[0] * ene_col);
+    printf("ene_row = %.1f\n", Coeff[1] * ene_row);
+    printf("ene_depot = %.1f\n", Coeff[2] * ene_depot);
+    printf("ene_dis = %.1f\n", Coeff[4] * ene_dis);
+    printf("ene_dem = %.1f\n", Coeff[3] * ene_dem);
     printf("qubo_ene = %.1f\n", ene);
+#endif
     return ene;
 }
 
@@ -234,7 +236,6 @@ double TSP::diff(int i, int j)
         if(k != i)
             diff_col += spin[k][j];
     diff_col = 2 * diff_col - 1;
-    //printf("\ndiff_col = %d\n", diff_col);
 
     // ensure no more than one 1 each row (go to a client no more than once)
     if(i != graph_size_i-1){
@@ -243,7 +244,6 @@ double TSP::diff(int i, int j)
                 diff_row += spin[i][k];
         diff_row *= 2;
     }
-    //printf("diff_row = %d\n", diff_row);
 
     // depot constraint
     if(i == graph_size_i-1){
@@ -260,9 +260,6 @@ double TSP::diff(int i, int j)
             diff_depot += spin[graph_size_i-1][k];
         }
     }
-    //printf("diff_depot = %d\n", diff_depot);
-    //printf("spin[%d][%d] = ", graph_size_i-1, j-1);
-    //std::cout << spin[graph_size_i-1][j-1] << std::endl;
 
     // capacity constraint
     dem_i = Demand[i];
@@ -274,7 +271,6 @@ double TSP::diff(int i, int j)
             diff_dem += 2 * dem_i * dem_k * spin[k][l];
         }
     }
-    //printf("diff_dem = %f\n", diff_dem * Coeff[3]);
     
     // distance constraint
     if(j == 0 || j == graph_size_j-1)
@@ -283,41 +279,75 @@ double TSP::diff(int i, int j)
         diff_dis += (j == 0)              ? 0 : Distance[k][i] * spin[k][j-1];
         diff_dis += (j == graph_size_j-1) ? 0 : Distance[i][k] * spin[k][j+1];
     }
-    //printf("diff_dis = %f\n", diff_dis * Coeff[4]);
 
 
     diff = Coeff[0] * diff_col + Coeff[1] * diff_row + Coeff[2] * diff_depot + Coeff[3] * diff_dem + Coeff[4] * diff_dis;
-    //printf("diff = %f\n", diff);
-                    
+#ifdef DEBUG
+    printf("\ndiff_col = %d\n", diff_col);
+    printf("diff_row = %d\n", diff_row);
+    printf("diff_depot = %d\n", diff_depot);
+    printf("diff_dem = %f\n", diff_dem * Coeff[3]);
+    printf("diff_dis = %f\n", diff_dis * Coeff[4]);
+    printf("diff = %f\n", diff);
+#endif                    
     return (spin[i][j]) ? -diff : diff;
 }
 
 bool TSP::validate(){
-    int tmp;
     double dem;
     
     // check each col for only one 1
+    int tmp_col;
+    bool col_bool(true);
     for(int j = 0; j < graph_size_j; j++){
-        tmp = 0;
+        tmp_col = 0;
         for(int i = 0; i < graph_size_i; i++){
-            tmp += spin[i][j];
+            tmp_col += spin[i][j];
         }
-        if(tmp != 1) return false;
+        if(tmp_col != 1){
+            col_bool = false;
+            break;
+        }
     }
 
     // check each row for at most one 1 (except the last row)
+    int tmp_row;
+    bool row_bool(true);
     for(int i = 0; i < graph_size_i-1; i++){
-        tmp = 0;
+        tmp_row = 0;
         for(int j = 0; j < graph_size_j; j++){
-            tmp += spin[i][j];
+            tmp_row += spin[i][j];
         }
-        if(tmp > 1) return false;
+        if(tmp_row > 1){
+            row_bool = false;
+            break;
+        }
     }
 
+    // check depot condition
+    bool depot_bool(true);
+    int first_depot(graph_size_j);
+    for(int i = 0; i < graph_size_j; i++){
+        if(spin[graph_size_i-1][i]){
+            first_depot = i;
+            break;
+        }
+    }
+    if(first_depot < graph_size_j){
+        for(int i = first_depot; i < graph_size_j; i++){
+            for(int j = 0; j < graph_size_i-1; j++){
+                if(spin[j][i])
+                    depot_bool = false;
+                    goto extract;
+            }
+        }
+    }
+
+    extract:
     V<int> r;
     for(int i = 0; i < graph_size_i; i++){
         for(int j = 0; j < graph_size_j; j++){
-            if(spin[i][j]){
+            if(spin[j][i]){
                 if(i != graph_size_i-1)
                     r.emplace_back(nodelist[i]);
                 else goto cap_check;
@@ -327,13 +357,43 @@ bool TSP::validate(){
 
     cap_check:
     dem = 0;
+    bool cap_bool(true);
     for(auto c : r){
         dem += params->cli[c].demand;
     }
     if(dem > params->vehicleCapacity) {
-        std::cout << "capacity limit excited" << std::endl;
-        return false;
+        cap_bool = false;
     }
+
+    bool failed(false);
+    if(!col_bool){
+        failed = true;
+#ifdef TUNE
+        fprintf(stderr, "column constraint failed\n");
+#endif
+    }
+    if(!row_bool){
+        failed = true;
+#ifdef TUNE
+        fprintf(stderr, "row constraint failed\n");
+#endif
+    }
+    if(!depot_bool){
+        failed = true;
+#ifdef TUNE
+        fprintf(stderr, "depot constraint failed\n");
+#endif
+    }
+    if(!cap_bool){
+        failed = true;
+#ifdef TUNE
+        fprintf(stderr, "capacity constraint failed\n");
+#endif
+    }
+#ifdef TUNE
+    fflush(stderr);
+#endif
+    if(failed) return false;
 
     r_out.emplace_back(r);
     return true;
@@ -343,7 +403,7 @@ void TSP::update_out()
 {
     V<int> r;
     int tmp(0);
-
+#ifdef DEBUG
     for(int i = 0; i < graph_size_i; i++){
         for(int j = 0; j < graph_size_j; j++){
             std::cout << spin[i][j] << ' ';
@@ -354,16 +414,20 @@ void TSP::update_out()
             std::cout << "\t0";
         std::cout << std::endl;
     }
-
-    if(!validate()){
+#endif
+    bool valid = validate();
+#if defined DEBUG || defined TUNE
+    if(!valid){
         std::cout << "Invalid Result\n";
-    } else{
+    }
+    else{
         std::cout << "new route: ";
         for(auto c : r_out.back()){
             std::cout << c << ' ';
         }
         std::cout << std::endl;
     }
+#endif
 }
 
 bool TSP::accept(double d)

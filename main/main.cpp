@@ -5,6 +5,7 @@
 #include "TSP.h"
 #include "Route.h"
 #include "MIP.h"
+#include "List.h"
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -37,17 +38,25 @@ int main(int argc, char *argv[])
 		if (population.getBestFound() != NULL)
 		{
             std::vector<double> A = commandline.A;
-			std::vector<std::vector<int>> r_out;
-            // auto& r = population.getBestFound()->chromR[0];
-            // TSP tsp(&params, r, A);
-            // tsp.work(commandline.nbIter);
-			for(auto& r : population.getBestFound()->chromR){
-                TSP tsp(&params, r, A);
-                tsp.work(commandline.nbIter);
-				r_out.insert(r_out.end(), tsp.r_out.begin(), tsp.r_out.end());
-            }
-			cout << r_out.size();
-			for(int i = 0 ; i < r_out.size(); i++) {
+			List l;
+			l.add(population.getBestFound()->chromR);
+			while(l.route_list.size() < 20){
+				for(auto& r : l.route_list){
+					TSP tsp(&params, r, A);
+					tsp.work(commandline.nbIter);
+					l.add(tsp.r_out);
+				}
+				cout << "route pool size: " << l.route_list.size() << endl;
+				for(auto& lr : l.route_list){
+					for(auto& c : lr){
+						cout << c << " ";
+					}
+					cout << endl;
+				}
+			}
+			vector<vector<int>> r_out(l.out());
+#ifdef DEBUG
+			for(int i = 0; i < r_out.size(); i++) {
 				auto& ro = r_out.at(i);
 				printf("Route[%d]: ", i);
 				double demand(0);
@@ -55,14 +64,9 @@ int main(int argc, char *argv[])
 					demand += params.cli[n].demand;
 					std::cout << n << ' ';
 				}
-				// if(demand > params.vehicleCapacity) {
-				// 	printf("i = %d\n", i);
-				// 	r_out.erase(r_out.begin()+i); i--;
-				// 						printf("i = %d\n", i);
-
-				// }
 				std::cout << "valid: " << (demand <= params.vehicleCapacity) << std::endl;
 			}
+#endif
 			R r(&params, r_out);
 			MIP mip(r.routes, &params);
 			mip.work();
