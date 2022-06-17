@@ -43,7 +43,7 @@ public:
 	// Reads the line of command and extracts possible options
 	CommandLine(int argc, char* argv[])
 	{
-		if (argc % 2 != 1 || argc > 18 || argc < 3)
+		if (argc % 2 != 1 || argc > 12 || argc < 7)
 		{
 			std::cout << "----- NUMBER OF COMMANDLINE ARGUMENTS IS INCORRECT: " << argc << std::endl;
 			display_help(); throw std::string("Incorrect line of command");
@@ -59,14 +59,8 @@ public:
 			//pathSolution = std::string(argv[2]);
 			for (int i = 7; i < argc; i += 2)
 			{
-				if (std::string(argv[i]) == "-t")
-					timeLimit = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-it")
 					nbIter  = atoi(argv[i+1]);
-				else if (std::string(argv[i]) == "-bks")
-					pathBKS = std::string(argv[i+1]);
-				else if (std::string(argv[i]) == "-seed")
-					seed    = atoi(argv[i+1]);
 				else if (std::string(argv[i]) == "-veh")
 					nbVeh = atoi(argv[i+1]);
 				else
@@ -82,14 +76,11 @@ public:
 	void display_help()
 	{
 		std::cout << std::endl;
-		std::cout << "-------------------------------------------------- HGS-CVRP algorithm (2020) --------------------------------------------------" << std::endl;
-		std::cout << "Call with: ./genvrp instancePath <a0> <a1> <a2> <a3> <b0> [-it nbIter] [-t myCPUtime] [-bks bksPath] [-seed mySeed] [-veh nbVehicles]           " << std::endl;
-		std::cout << "[-it nbIterations] sets a maximum number of iterations without improvement. Defaults to 20,000                                 " << std::endl;
-		std::cout << "[-t myCPUtime] sets a time limit in seconds. If this parameter is set the code will be run iteratively until the time limit    " << std::endl;
-		std::cout << "[-bks bksPath] sets an optional path to a BKS. This file will be overwritten in case of improvement                            " << std::endl;
-		std::cout << "[-seed mySeed] sets a fixed seed. Defaults to 0                                                                                " << std::endl;
-		std::cout << "[-veh nbVehicles] sets a prescribed fleet size. Otherwise a reasonable UB on the the fleet size is calculated                  " << std::endl;
-		std::cout << "-------------------------------------------------------------------------------------------------------------------------------" << std::endl;
+		std::cout << "------------------------------------------- SA-CVRP algorithm (2020) -------------------------------------------" << std::endl;
+		std::cout << "Call with: ./cvrp instancePath <a0> <a1> <a2> <a3> <b0> [-it nbIter] [-veh nbVehicles]                          " << std::endl;
+		std::cout << "[-it nbIterations] sets a maximum number of iterations without improvement. Defaults to 20,000                  " << std::endl;
+		std::cout << "[-veh nbVehicles] sets a prescribed fleet size. Otherwise a reasonable UB on the the fleet size is calculated   " << std::endl;
+		std::cout << "----------------------------------------------------------------------------------------------------------------" << std::endl;
 		std::cout << std::endl;
 	};
 };
