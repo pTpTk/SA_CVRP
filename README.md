@@ -22,7 +22,7 @@ Note
 
 ## Runing
 There are 5 parameters as mentioned in the overleaf document. The command for running the code is  
-./cvrp <instancePath> <a0> <a1> <a2> <a3> <b0> [-it nbIter] [-veh nbVehicles]  
+./cvrp &lt;instancePath> &lt;a0> &lt;a1> &lt;a2> &lt;a3> &lt;b0> [-it nbIter] [-veh nbVehicles]  
 a0 to b0 corresponds to the coefficients. nbIter is the SA sweep numbers. nbVehicles is the number of vehicles, however it is not needed.
 
 ## Problems
